@@ -1,0 +1,16 @@
+.idea/
+.venv/
+.tools/
+.artifacts/
+.superpowers/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+.env.*
+!.env.example
+backups/
+*.sql.gz
+*.archive.gz
+*.log
+.coverage

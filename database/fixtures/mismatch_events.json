@@ -1,0 +1,98 @@
+[
+  {
+    "name": "valid shape but wrong committed total",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000300",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-300",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 1,
+        "unit_credit": 10000,
+        "total_credit": 10000
+      }
+    },
+    "expected": "PAYLOAD_MISMATCH",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "server success without SQL outbox",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000301",
+      "schema_version": 1,
+      "event_type": "profile_updated",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-301",
+      "operation_id": "synthetic:profile_updated:301",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": null,
+      "aggregate_type": "user",
+      "aggregate_id": "1",
+      "aggregate_version": 2,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "changed_fields": [
+          "nickname"
+        ]
+      }
+    },
+    "expected": "EXTRA_SERVER_EVENT",
+    "sql_snapshot": null
+  },
+  {
+    "name": "missing referenced content",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000302",
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-302",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "ORPHAN_REFERENCE",
+    "reference_exists": false
+  }
+]

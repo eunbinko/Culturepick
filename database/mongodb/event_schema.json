@@ -1,0 +1,65 @@
+{
+  "$and": [
+    {"$jsonSchema": {
+      "bsonType": "object", "additionalProperties": false,
+      "required": ["event_id", "schema_version", "event_type", "event_source", "occurred_at", "received_at", "request_id", "operation_id", "user_id", "anonymous_id", "session_id", "content_id", "aggregate_type", "aggregate_id", "aggregate_version", "is_test", "test_run_id", "properties"],
+      "properties": {
+        "_id": {"bsonType": "objectId"},
+        "event_id": {"bsonType": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+        "schema_version": {"bsonType": ["int", "long"], "enum": [1]},
+        "event_type": {"enum": ["user_registered", "profile_updated", "survey_submitted", "survey_updated", "content_viewed", "search_performed", "filter_changed", "bookmark_added", "bookmark_removed", "review_created", "review_updated", "review_deleted", "recommendation_impression", "recommendation_clicked", "reservation_confirmed", "reservation_cancelled", "visit_marked"]},
+        "event_source": {"enum": ["browser", "server"]},
+        "occurred_at": {"bsonType": "date"},
+        "received_at": {"bsonType": "date"},
+        "request_id": {"bsonType": "string", "minLength": 1, "maxLength": 128},
+        "operation_id": {"bsonType": ["string", "null"], "minLength": 1, "maxLength": 191},
+        "user_id": {"bsonType": ["string", "null"], "pattern": "^[1-9][0-9]{0,18}$"},
+        "anonymous_id": {"bsonType": ["string", "null"], "minLength": 1, "maxLength": 128},
+        "session_id": {"bsonType": "string", "minLength": 1, "maxLength": 128},
+        "content_id": {"bsonType": ["string", "null"], "pattern": "^[1-9][0-9]{0,18}$"},
+        "aggregate_type": {"bsonType": ["string", "null"], "enum": ["user", "survey", "bookmark", "review", "reservation", "visit", null]},
+        "aggregate_id": {"bsonType": ["string", "null"], "minLength": 1, "maxLength": 64},
+        "aggregate_version": {"bsonType": ["int", "long", "null"], "minimum": 1},
+        "is_test": {"bsonType": "bool"},
+        "test_run_id": {"bsonType": ["string", "null"], "minLength": 1, "maxLength": 64},
+        "properties": {
+          "bsonType": "object", "additionalProperties": false,
+          "properties": {
+            "reservation_id": {"bsonType": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+            "content_session_id": {"bsonType": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+            "quantity": {"bsonType": ["int", "long"], "minimum": 1, "maximum": 4},
+            "unit_credit": {"bsonType": ["int", "long"], "minimum": 0},
+            "total_credit": {"bsonType": ["int", "long"], "minimum": 0},
+            "granted_credit": {"bsonType": ["int", "long"], "minimum": 0},
+            "changed_fields": {"bsonType": "array", "uniqueItems": true, "maxItems": 16,
+              "items": {"enum": ["nickname", "region_code", "min_price", "max_price", "lifestyle_type", "genre_ids", "rating", "body"]}},
+            "recommendation_id": {"bsonType": "string", "minLength": 1, "maxLength": 128},
+            "position": {"bsonType": ["int", "long"], "minimum": 0},
+            "search_term": {"bsonType": "string", "maxLength": 128},
+            "filters": {"bsonType": "object", "additionalProperties": false,
+              "properties": {
+                "region_code": {"bsonType": "string", "maxLength": 32},
+                "genre_code": {"bsonType": "string", "maxLength": 32},
+                "is_free": {"bsonType": "bool"},
+                "price_max": {"bsonType": ["int", "long"], "minimum": 0}
+              }}
+          }
+        }
+      },
+      "oneOf": [
+        {"properties": {"event_type": {"enum": ["reservation_confirmed", "reservation_cancelled"]}, "properties": {"required": ["reservation_id", "content_session_id", "quantity", "unit_credit", "total_credit"]}}},
+        {"properties": {"event_type": {"enum": ["recommendation_impression", "recommendation_clicked"]}, "properties": {"required": ["recommendation_id", "position"]}}},
+        {"properties": {"event_type": {"enum": ["user_registered"]}, "properties": {"required": ["granted_credit"]}}},
+        {"properties": {"event_type": {"enum": ["profile_updated", "survey_updated", "review_updated"]}, "properties": {"required": ["changed_fields"]}}},
+        {"properties": {"event_type": {"enum": ["survey_submitted", "content_viewed", "search_performed", "filter_changed", "bookmark_added", "bookmark_removed", "review_created", "review_deleted", "visit_marked"]}}}
+      ]
+    }},
+    {"$or": [
+      {"event_source": "browser", "event_type": {"$in": ["content_viewed", "search_performed", "filter_changed", "recommendation_impression", "recommendation_clicked"]}, "operation_id": null, "aggregate_type": null, "aggregate_id": null, "aggregate_version": null},
+      {"event_source": "server", "event_type": {"$in": ["user_registered", "profile_updated", "survey_submitted", "survey_updated", "bookmark_added", "bookmark_removed", "review_created", "review_updated", "review_deleted", "reservation_confirmed", "reservation_cancelled", "visit_marked"]}, "operation_id": {"$type": "string"}, "aggregate_type": {"$type": "string"}, "aggregate_id": {"$type": "string"}, "aggregate_version": {"$type": ["int", "long"]}, "user_id": {"$type": "string"}}
+    ]},
+    {"$or": [{"user_id": {"$type": "string"}, "anonymous_id": null}, {"user_id": null, "anonymous_id": {"$type": "string"}}]},
+    {"$or": [{"is_test": false, "test_run_id": null}, {"is_test": true, "test_run_id": {"$type": "string", "$ne": "real"}}]},
+    {"$or": [{"event_type": {"$in": ["user_registered", "profile_updated", "survey_submitted", "survey_updated", "search_performed", "filter_changed"]}}, {"content_id": {"$type": "string"}}]}
+  ]
+}

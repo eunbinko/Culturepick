@@ -1,0 +1,308 @@
+[
+  {
+    "name": "numeric user ID",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000200",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-200",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": 1,
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "wrong version",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000201",
+      "schema_version": 2,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-201",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "forged browser success",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000202",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-202",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA"
+  },
+  {
+    "name": "non UTC timestamp",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000203",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T09:00:00+09:00",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-203",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "test without namespace",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000204",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-204",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": null,
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "unknown PII field",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000205",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-205",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "email": "synthetic@example.invalid"
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "credit as string",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000206",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-206",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": "10000",
+        "total_credit": 20000
+      }
+    },
+    "expected": "INVALID_SCHEMA",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": "10000",
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "missing event ID",
+    "event": {
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-250",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "INVALID_SCHEMA"
+  }
+]

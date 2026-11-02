@@ -1,0 +1,182 @@
+[
+  {
+    "name": "first view",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000100",
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-100",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "VALID"
+  },
+  {
+    "name": "same ID retry keeps first received_at",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000100",
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:06:00.000Z",
+      "request_id": "synthetic-request-100",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "DUPLICATE_EVENT"
+  },
+  {
+    "name": "same ID changed immutable content",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000100",
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-100",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "102",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "EVENT_ID_CONFLICT"
+  },
+  {
+    "name": "first business operation",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000101",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-101",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "VALID",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "different ID same operation",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000102",
+      "schema_version": 1,
+      "event_type": "reservation_confirmed",
+      "event_source": "server",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-101",
+      "operation_id": "reservation:501:confirmed",
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": "reservation",
+      "aggregate_id": "501",
+      "aggregate_version": 1,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      }
+    },
+    "expected": "DUPLICATE_OPERATION",
+    "sql_snapshot": {
+      "event_type": "reservation_confirmed",
+      "operation_id": "reservation:501:confirmed",
+      "properties": {
+        "reservation_id": "501",
+        "content_session_id": "301",
+        "quantity": 2,
+        "unit_credit": 10000,
+        "total_credit": 20000
+      },
+      "aggregate_version": 1
+    }
+  },
+  {
+    "name": "independent view must survive deduplication",
+    "event": {
+      "event_id": "20000000-0000-4000-8000-000000000103",
+      "schema_version": 1,
+      "event_type": "content_viewed",
+      "event_source": "browser",
+      "occurred_at": "2026-11-02T00:05:00.000Z",
+      "received_at": "2026-11-02T00:05:01.000Z",
+      "request_id": "synthetic-request-103",
+      "operation_id": null,
+      "user_id": "1",
+      "anonymous_id": null,
+      "session_id": "synthetic-browser-session",
+      "content_id": "101",
+      "aggregate_type": null,
+      "aggregate_id": null,
+      "aggregate_version": null,
+      "is_test": true,
+      "test_run_id": "demo-20261102-01",
+      "properties": {}
+    },
+    "expected": "VALID"
+  }
+]

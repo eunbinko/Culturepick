@@ -1,0 +1,76 @@
+# Always invoke from repository root with --project-directory . and --env-file infra/db/.env.
+name: ${COMPOSE_PROJECT_NAME:-culturepick}
+services:
+  mariadb:
+    image: ${MARIADB_IMAGE:-mariadb:11.8}
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: culturepick
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Generate infra/db/.env first}
+      MARIADB_MIGRATION_PASSWORD: ${MARIADB_MIGRATION_PASSWORD:?required}
+      MARIADB_APP_PASSWORD: ${MARIADB_APP_PASSWORD:?required}
+      MARIADB_COLLECTOR_PASSWORD: ${MARIADB_COLLECTOR_PASSWORD:?required}
+      MARIADB_DISPATCHER_PASSWORD: ${MARIADB_DISPATCHER_PASSWORD:?required}
+      MARIADB_ANALYTICS_PASSWORD: ${MARIADB_ANALYTICS_PASSWORD:?required}
+      MARIADB_BACKUP_PASSWORD: ${MARIADB_BACKUP_PASSWORD:?required}
+      TZ: UTC
+    ports:
+      - '${DB_BIND_ADDRESS:-127.0.0.1}:${MARIADB_PORT:-3306}:3306'
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./infra/db/mariadb.cnf:/etc/mysql/conf.d/culturepick.cnf:ro
+      - ./infra/db/10-users.sh:/docker-entrypoint-initdb.d/10-users.sh:ro
+    mem_limit: 768m
+    cpus: 1.0
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    logging:
+      options: {max-size: '10m', max-file: '3'}
+  mongodb:
+    image: ${MONGODB_IMAGE:-mongo:8.0}
+    command: ['mongod', '--config', '/etc/mongod.conf']
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?required}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?required}
+      MONGO_DISPATCHER_PASSWORD: ${MONGO_DISPATCHER_PASSWORD:?required}
+      MONGO_ANALYTICS_PASSWORD: ${MONGO_ANALYTICS_PASSWORD:?required}
+      MONGO_BACKUP_PASSWORD: ${MONGO_BACKUP_PASSWORD:?required}
+    ports:
+      - '${DB_BIND_ADDRESS:-127.0.0.1}:${MONGODB_PORT:-27017}:27017'
+    volumes:
+      - mongodb_data:/data/db
+      - ./infra/db/mongod.conf:/etc/mongod.conf:ro
+      - ./database/mongodb/init.js:/docker-entrypoint-initdb.d/10-events.js:ro
+      - ./database/mongodb/event_schema.json:/opt/culturepick/event_schema.json:ro
+    mem_limit: 768m
+    cpus: 1.0
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'const e=db.getSiblingDB("culturepick_events"); if(!e.auth("event_app",process.env.MONGO_APP_PASSWORD).ok) quit(1); e.raw_events.findOne({});']
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    logging:
+      options: {max-size: '10m', max-file: '3'}
+  migrate:
+    profiles: ['tools']
+    build:
+      context: .
+      dockerfile: infra/db/migrate.Dockerfile
+    environment:
+      MARIADB_HOST: mariadb
+      MARIADB_PORT: 3306
+      MARIADB_MIGRATION_USER: migration_user
+      MARIADB_MIGRATION_PASSWORD: ${MARIADB_MIGRATION_PASSWORD:?required}
+    depends_on:
+      mariadb: {condition: service_healthy}
+    command: ['python', '-m', 'alembic', 'upgrade', 'head']
+volumes:
+  mariadb_data:
+  mongodb_data:

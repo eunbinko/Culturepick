@@ -1,0 +1,9 @@
+.git
+.idea
+.venv
+.tools
+.artifacts
+backups
+**/.env
+**/.env.*
+**/__pycache__

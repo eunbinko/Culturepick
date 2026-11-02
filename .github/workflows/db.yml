@@ -1,0 +1,62 @@
+name: DB validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - name: Install verification tools
+        run: python -m pip install -r requirements-dev.txt
+      - name: Generate private local configuration
+        run: python scripts/create_env.py
+      - name: Syntax and reference checks
+        run: |
+          python scripts/render_schema.py --check
+          find scripts database/backup infra/db -name '*.sh' -exec bash -n {} \;
+          node --check database/mongodb/init.js
+          bash scripts/db.sh config --quiet
+      - name: Start and migrate disposable databases
+        run: |
+          bash scripts/db.sh up -d --wait mariadb mongodb
+          bash scripts/db.sh --profile tools run --rm --build migrate
+          bash scripts/db.sh exec -T mariadb sh -c 'MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb -uroot' < database/mariadb/permissions.sql
+          bash scripts/db.sh exec -T mariadb sh -c 'MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb -uroot' < database/mariadb/seed.sql
+      - name: Run live tests and take backups
+        run: |
+          set -a
+          source infra/db/.env
+          set +a
+          export TEST_MARIADB_PORT="$MARIADB_PORT" TEST_MARIADB_USER=migration_user
+          export TEST_MARIADB_PASSWORD="$MARIADB_MIGRATION_PASSWORD" TEST_APP_PASSWORD="$MARIADB_APP_PASSWORD"
+          export TEST_MONGODB_URI="mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@127.0.0.1:${MONGODB_PORT}/?authSource=admin"
+          export TEST_MONGO_APP_PASSWORD="$MONGO_APP_PASSWORD"
+          python -m pytest -q
+          python -c 'import json,os; from pymongo import MongoClient; from database.event_validation import to_bson; c=MongoClient(os.environ["TEST_MONGODB_URI"]); e=json.load(open("database/mongodb/event_examples.json"))[4]; c.culturepick_events.raw_events.insert_one(to_bson(e)); c.close()'
+          bash database/backup/backup_mariadb.sh
+          WRITES_PAUSED=yes bash database/backup/backup_mongodb.sh
+      - name: Restore into a second project and compare
+        run: |
+          set -a
+          source infra/db/.env
+          set +a
+          export TEST_MONGODB_URI="mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@127.0.0.1:${MONGODB_PORT}/?authSource=admin"
+          python -c 'from pathlib import Path; p=Path("infra/db/.env").read_text(); Path("infra/db/.env.restore").write_text(p.replace("COMPOSE_PROJECT_NAME=culturepick", "COMPOSE_PROJECT_NAME=culturepick-restore-ci").replace("MARIADB_PORT=3306", "MARIADB_PORT=13307").replace("MONGODB_PORT=27017", "MONGODB_PORT=27018"))'
+          export SOURCE_MARIADB_PORT="$MARIADB_PORT"
+          unset MARIADB_PORT MONGODB_PORT COMPOSE_PROJECT_NAME
+          export ENV_FILE="$PWD/infra/db/.env.restore" RESTORE_PROJECT=culturepick-restore-ci RESTORE_CONFIRM=culturepick-restore-ci
+          bash scripts/db.sh --project-name "$RESTORE_PROJECT" up -d --wait mariadb mongodb
+          bash database/backup/restore_mariadb.sh backups/mariadb-*.sql.gz
+          bash database/backup/restore_mongodb.sh backups/mongodb-*.archive.gz
+          export RESTORE_MARIADB_PORT=13307
+          export RESTORE_MONGODB_URI="mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@127.0.0.1:27018/?authSource=admin"
+          python scripts/verify_restore.py
+      - name: Stop test projects
+        if: always()
+        run: |
+          bash scripts/db.sh down
+          if test -f infra/db/.env.restore; then ENV_FILE="$PWD/infra/db/.env.restore" bash scripts/db.sh --project-name culturepick-restore-ci down; fi
