@@ -4,6 +4,8 @@
 
 ## 실행 순서와 스키마 기준
 
+Linux에서는 호스트 커널도 확인합니다. 실제 CI의 최신 Ubuntu 이미지에서 MongoDB가 커널 호환성 검사로 시작을 거절했습니다. [MongoDB 공식 안내](https://www.mongodb.com/docs/manual/administration/production-notes/)에 따라 6.19~7.0.13은 피하고 지원 배포판의 호환 커널을 사용합니다. Docker도 호스트 커널을 공유합니다. 현재 CI는 6.8 커널을 제공하는 ubuntu-22.04에 고정했습니다. runner 지원 종료 또는 DB/커널 변경 시 다시 검증합니다.
+
 1. `scripts/create_env.py`로 무작위 비밀번호를 생성합니다. 기존 `.env`는 덮어쓰지 않습니다.
 2. Compose를 올리면 빈 볼륨에서만 DB·접속 계정과 Mongo 검증/인덱스가 초기화됩니다.
 3. `migrate` 서비스가 Alembic `upgrade head`를 실행합니다.

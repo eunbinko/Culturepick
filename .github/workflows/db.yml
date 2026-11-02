@@ -4,7 +4,9 @@ permissions:
   contents: read
 jobs:
   database:
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 rejects Linux 6.19..7.0.13 (SERVER-121912).
+    # ubuntu-22.04 currently provides the compatible 6.8 Azure kernel.
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
