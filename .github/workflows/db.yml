@@ -55,6 +55,9 @@ jobs:
           export RESTORE_MARIADB_PORT=13307
           export RESTORE_MONGODB_URI="mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@127.0.0.1:27018/?authSource=admin"
           python scripts/verify_restore.py
+      - name: Diagnose database startup failures
+        if: failure()
+        run: bash scripts/db.sh logs --no-color --tail 120 mariadb mongodb
       - name: Stop test projects
         if: always()
         run: |
